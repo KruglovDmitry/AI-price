@@ -1,0 +1,12 @@
+.env
+tokens.json
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+output/*.docx
+!output/.gitkeep
+.idea/
+.vscode/
+*.log
