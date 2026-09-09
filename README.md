@@ -28,6 +28,9 @@ python -m agent.bots.telegram_bot
 | `PRICE_XLSX_PATH` | опционально, путь к прайсу |
 | `PROPOSAL_TEMPLATE_PATH` | опционально, шаблон DOCX |
 | `OUTPUT_DIR` | папка для готовых КП (по умолчанию `output/`) |
+| `CATALOG_RULES_PATH` | правила каталога (синонимы, family, overrides) |
+
+Каталог универсальный: метаданные берутся из колонок прайса (`kind`/`family`/`parent`, если есть), затем из [`assets/catalog_rules.json`](assets/catalog_rules.json), и только потом — общие эвристики (порядок строк, маркеры «опция», фокусные слова запроса).
 
 ## Пример диалога
 

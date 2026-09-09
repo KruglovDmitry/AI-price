@@ -12,7 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_deepseek import ChatDeepSeek
 from pydantic import BaseModel, Field
 
-from .services.catalog import get_catalog, search_products
+from .services.catalog import get_catalog, get_product_options, search_products
 from .services.proposal import create_commercial_proposal
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -39,6 +39,13 @@ class SearchInput(BaseModel):
     limit: int = Field(8, description="Максимум результатов")
 
 
+class OptionsInput(BaseModel):
+    product_name: str = Field(
+        ...,
+        description="Название или модель базового прибора, для которого нужны опции/аксессуары",
+    )
+
+
 class ProposalInput(BaseModel):
     items_json: str = Field(
         ...,
@@ -58,9 +65,20 @@ search_tool = StructuredTool.from_function(
     name="search_products",
     description=(
         "Поиск позиций в прайсе по названию или описанию. "
-        "Возвращает name, description, price, delivery_weeks."
+        "Возвращает name, description, price, delivery_weeks, kind "
+        "(base/option/accessory), family, parent_name."
     ),
     args_schema=SearchInput,
+)
+
+options_tool = StructuredTool.from_function(
+    func=get_product_options,
+    name="get_product_options",
+    description=(
+        "Вернуть опции и аксессуары для конкретного базового прибора из прайса. "
+        "Использовать при вопросах «какие опции к …», «что ещё нужно к модели»."
+    ),
+    args_schema=OptionsInput,
 )
 
 proposal_tool = StructuredTool.from_function(
@@ -73,7 +91,7 @@ proposal_tool = StructuredTool.from_function(
     args_schema=ProposalInput,
 )
 
-tools = [search_tool, proposal_tool]
+tools = [search_tool, options_tool, proposal_tool]
 
 prompt = ChatPromptTemplate.from_messages(
     [

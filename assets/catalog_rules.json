@@ -1,0 +1,64 @@
+{
+  "synonyms": {
+    "свч": ["генератор", "сигнал"],
+    "microwave": ["генератор", "сигнал"],
+    "сигнальный": ["генератор", "сигнал"]
+  },
+  "query": {
+    "equipment_terms": [
+      "генератор",
+      "анализатор",
+      "прибор",
+      "ваттметр",
+      "спектр",
+      "цепей"
+    ],
+    "option_terms": [
+      "опция",
+      "опции",
+      "аксессуар",
+      "аксессуары",
+      "модуль",
+      "модули",
+      "кейс",
+      "сумка",
+      "калибровка",
+      "калибровочный"
+    ]
+  },
+  "kind_markers": {
+    "base_name_prefixes": ["анализатор", "генератор", "векторный"],
+    "option_name_substrings": ["опция"],
+    "accessory_name_substrings": [
+      "кейс",
+      "сумка",
+      "адаптер",
+      "антенн",
+      "рукоятк",
+      "набор для монтажа",
+      "калибровочн",
+      "ваттметр",
+      "модуль"
+    ],
+    "force_base_name_substrings": ["DA30-707"]
+  },
+  "family_rules": [
+    {"match": "^HSP", "family": "HSP"},
+    {"match": "^HSE", "family": "HSE"},
+    {"match": "^PSA", "family": "PSA"},
+    {"match": "^SA50", "family": "SA5000A"},
+    {"match": "^SA30", "family": "SA3000A"},
+    {"match": "^ESG", "family": "ESG2020"},
+    {"match": "^ENA", "family": "ENA"},
+    {"match": "^DA30", "family": "DA30"},
+    {"match": "^RPS", "family": "ESG2020"},
+    {"match": "^PMK", "family": "ESG2020"},
+    {"match": "^RMK", "family": "ESG2020"}
+  ],
+  "products": {
+    "Широкополосное согласующее устройство (Антенная рукоятка) DA30-707": {
+      "kind": "base",
+      "family": "DA30"
+    }
+  }
+}
