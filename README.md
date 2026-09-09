@@ -1,8 +1,8 @@
-# AI-price — MAX-бот коммерческих предложений
+# AI-price — Telegram-бот коммерческих предложений
 
-Бот в мессенджере MAX принимает текст или голос, ищет позиции в прайсе (`assets/price_01.xlsx`) и собирает КП по шаблону (`assets/example.docx`).
+Бот в Telegram принимает текст или голос, ищет позиции в прайсе (`assets/price_01.xlsx`) и собирает КП по шаблону (`assets/example.docx`).
 
-Стек: LangChain + DeepSeek, Yandex SpeechKit STT, `maxapi-sdk`.
+Стек: LangChain + DeepSeek, Yandex SpeechKit STT, `python-telegram-bot`.
 
 ## Быстрый старт
 
@@ -12,16 +12,17 @@ python -m venv .venv
 .venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 copy .env.example .env          # заполните ключи
-python -m agent.bots.max_bot
+python -m agent.bots.telegram_bot
 ```
+
+Альтернатива: `python -m agent.telegram_bot`
 
 ## Переменные окружения
 
 | Переменная | Назначение |
 |---|---|
 | `DEEPSEEK_API_KEY` | API-ключ DeepSeek |
-| `MAX_BOT_TOKEN` | токен бота MAX |
-| `MAX_API_URL` | API URL (по умолчанию `https://platform-api2.max.ru`) |
+| `TELEGRAM_BOT_TOKEN` | токен бота от BotFather |
 | `YANDEX_FOLDER_ID` | folder id Yandex Cloud |
 | `YANDEX_OAUTH_TOKEN` | OAuth для IAM (STT) |
 | `PRICE_XLSX_PATH` | опционально, путь к прайсу |
@@ -48,7 +49,8 @@ agent/
   core.py              # LangChain agent + tools
   prompt.txt
   utils.py             # Yandex STT
-  bots/max_bot.py
+  telegram_bot.py      # удобный entrypoint
+  bots/telegram_bot.py # Telegram handlers
   services/
     catalog.py         # прайс
     proposal.py        # сборка DOCX
