@@ -5,9 +5,23 @@ from __future__ import annotations
 import logging
 import os
 import re
+import socket
 import tempfile
 from datetime import datetime
 from pathlib import Path
+
+# На сервере нет маршрута IPv6, а api.telegram.org отдаёт AAAA.
+# httpx тогда падает с Network unreachable ещё до IPv4.
+_orig_getaddrinfo = socket.getaddrinfo
+
+
+def _ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    if family == 0:
+        family = socket.AF_INET
+    return _orig_getaddrinfo(host, port, family, type, proto, flags)
+
+
+socket.getaddrinfo = _ipv4_getaddrinfo
 
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage
@@ -192,9 +206,33 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         )
 
 
+async def _ensure_bot_user(application: Application) -> None:
+    """Добирает getMe, если первый вызов к Telegram оборвался по таймауту.
+
+    В python-telegram-bot 22.2 при TimedOut флаг initialized уже выставлен,
+    повторный initialize() пропускает getMe, и старт падает на bot.id.
+    """
+    try:
+        _ = application.bot.id
+    except RuntimeError:
+        logger.warning("Повторный getMe: первый запрос к Telegram не успел завершиться")
+        await application.bot.get_me()
+
+
 def main() -> None:
     logger.info("Запуск Telegram-бота...")
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    app = (
+        Application.builder()
+        .token(TELEGRAM_BOT_TOKEN)
+        .connect_timeout(30)
+        .read_timeout(30)
+        .write_timeout(30)
+        .pool_timeout(30)
+        .get_updates_connect_timeout(30)
+        .get_updates_pool_timeout(30)
+        .post_init(_ensure_bot_user)
+        .build()
+    )
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))

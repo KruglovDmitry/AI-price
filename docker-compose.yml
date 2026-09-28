@@ -1,0 +1,9 @@
+services:
+  bot:
+    build: .
+    container_name: ai-price-bot
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+    restart: unless-stopped
