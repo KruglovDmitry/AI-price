@@ -48,17 +48,22 @@ if not TELEGRAM_BOT_TOKEN:
 
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID")
 YANDEX_OAUTH_TOKEN = os.getenv("YANDEX_OAUTH_TOKEN")
+YANDEX_API_KEY = (os.getenv("YANDEX_API_KEY") or "").strip()
 
 yandex_token_service = None
-if YANDEX_FOLDER_ID and YANDEX_OAUTH_TOKEN:
+if YANDEX_API_KEY:
+    logger.info("Yandex STT: используется API-ключ сервисного аккаунта")
+elif YANDEX_FOLDER_ID and YANDEX_OAUTH_TOKEN:
     yandex_token_service = token_service.TokenManager(
         YANDEX_OAUTH_TOKEN,
         token_file=str(ROOT_DIR / "tokens.json"),
     )
-else:
     logger.warning(
-        "YANDEX_FOLDER_ID / YANDEX_OAUTH_TOKEN не заданы — голосовые сообщения недоступны"
+        "Yandex STT: API-ключ не задан, используется OAuth. "
+        "Новые OAuth-токены Яндекс с 1 июня 2026 не принимает"
     )
+else:
+    logger.warning("YANDEX_API_KEY не задан — голосовые сообщения недоступны")
 
 chat_histories: dict[int, list] = {}
 HISTORY_LIMIT = 30
@@ -174,9 +179,9 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not yandex_token_service or not YANDEX_FOLDER_ID:
+    if not YANDEX_API_KEY and not yandex_token_service:
         await update.message.reply_text(
-            "Голосовые сообщения сейчас недоступны: не настроен Yandex STT."
+            "Голосовые сообщения сейчас недоступны: не задан YANDEX_API_KEY."
         )
         return
 
@@ -185,10 +190,20 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             file_path = str(Path(tmp) / "voice_message.ogg")
             voice_file = await update.message.voice.get_file()
             await voice_file.download_to_drive(file_path)
+            iam_token = None
+            if not YANDEX_API_KEY and yandex_token_service is not None:
+                iam_token = yandex_token_service.get_valid_token()
+                if not iam_token:
+                    await update.message.reply_text(
+                        "Голос не распознан: OAuth-токен Яндекса недействителен. "
+                        "Нужен API-ключ сервисного аккаунта в YANDEX_API_KEY."
+                    )
+                    return
             text = speech_to_text_yandex(
                 file_path,
-                YANDEX_FOLDER_ID,
-                yandex_token_service,
+                api_key=YANDEX_API_KEY or None,
+                folder_id=YANDEX_FOLDER_ID,
+                iam_token=iam_token,
             )
 
         if not text:
